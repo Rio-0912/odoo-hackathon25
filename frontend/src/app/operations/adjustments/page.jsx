@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -8,28 +9,141 @@ import {
     SidebarProvider,
 } from "@/components/ui/sidebar"
 import { Button } from '@/components/ui/button';
-import { ClipboardList, ArrowLeft } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Search, Plus, ClipboardList } from 'lucide-react';
+import api from '@/lib/api';
+import { format } from 'date-fns';
 
 export default function AdjustmentsPage() {
+    const [adjustments, setAdjustments] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchAdjustments();
+    }, []);
+
+    const fetchAdjustments = async () => {
+        try {
+            const res = await api.get('/operations?type=ADJ');
+            setAdjustments(res.data);
+        } catch (err) {
+            console.error('Failed to fetch adjustments', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filteredAdjustments = adjustments.filter(adj =>
+        adj.reference?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const getStatusBadge = (status) => {
+        const variants = {
+            'Draft': 'bg-gray-100 text-gray-800',
+            'Done': 'bg-purple-100 text-purple-800',
+            'Cancelled': 'bg-red-100 text-red-800',
+        };
+        return <Badge className={variants[status] || 'bg-gray-100 text-gray-800'}>{status}</Badge>;
+    };
+
     return (
-        <SidebarProvider>
+        <SidebarProvider
+            style={{
+                "--sidebar-width": "calc(var(--spacing) * 72)",
+                "--header-height": "calc(var(--spacing) * 12)"
+            }}>
             <AppSidebar variant="inset" />
             <SidebarInset>
                 <SiteHeader />
-                <div className="flex flex-1 items-center justify-center">
-                    <div className="text-center space-y-4">
-                        <ClipboardList className="h-16 w-16 text-purple-600 mx-auto" />
-                        <h1 className="text-2xl font-bold">Inventory Adjustments</h1>
-                        <p className="text-muted-foreground max-w-md">
-                            This page will allow you to adjust stock quantities to match physical counts.
-                            Useful for fixing discrepancies or accounting for damaged goods.
-                        </p>
-                        <Link href="/operations/move-history">
-                            <Button>
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                View Move History
-                            </Button>
-                        </Link>
+                <div className="flex flex-1 flex-col">
+                    <div className="@container/main flex flex-1 flex-col gap-2">
+                        <div className="flex flex-col gap-4 p-4 md:gap-6 md:p-6">
+                            {/* Header */}
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                                        <ClipboardList className="h-8 w-8 text-purple-600" />
+                                        Inventory Adjustments
+                                    </h1>
+                                    <p className="text-muted-foreground mt-1">Correct stock levels with physical counts</p>
+                                </div>
+                                <Link href="/operations/adjustments/new">
+                                    <Button>
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        New Adjustment
+                                    </Button>
+                                </Link>
+                            </div>
+
+                            {/* Search */}
+                            <div className="flex items-center gap-4 bg-card p-4 rounded-lg border">
+                                <div className="relative flex-1 max-w-sm">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search by reference..."
+                                        className="pl-9"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {filteredAdjustments.length} adjustments
+                                </div>
+                            </div>
+
+                            {/* List */}
+                            <div className="bg-card rounded-lg border overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Reference</TableHead>
+                                            <TableHead>Location</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {loading ? (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                                    Loading...
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : filteredAdjustments.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                                    No adjustments found.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            filteredAdjustments.map((adj) => (
+                                                <TableRow key={adj.id} className="cursor-pointer hover:bg-muted/50">
+                                                    <TableCell>
+                                                        <Link href={`/operations/adjustments/${adj.id}`} className="hover:underline">
+                                                            <code className="text-xs bg-muted px-2 py-1 rounded">{adj.reference}</code>
+                                                        </Link>
+                                                    </TableCell>
+                                                    <TableCell>{adj.DestLocation?.name || '-'}</TableCell>
+                                                    <TableCell className="text-sm text-muted-foreground">
+                                                        {adj.createdAt ? format(new Date(adj.createdAt), 'MMM dd, yyyy') : '-'}
+                                                    </TableCell>
+                                                    <TableCell>{getStatusBadge(adj.status)}</TableCell>
+                                                    <TableCell>
+                                                        <Link href={`/operations/adjustments/${adj.id}`}>
+                                                            <Button variant="ghost" size="sm">View</Button>
+                                                        </Link>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </SidebarInset>

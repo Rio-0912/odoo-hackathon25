@@ -4,28 +4,42 @@ const { Op } = require('sequelize');
 
 exports.getKPIs = async (req, res) => {
   try {
-    // Total Products
     const totalProducts = await Product.count();
-
-    // Pending Receipts (Stock Moves IN with status Draft)
+    
+    // Low stock items (quantity < 10)
+    const lowStock = await Product.count({
+      where: {
+        quantity: {
+          [Op.lt]: 10
+        }
+      }
+    });
+    
+    // Pending Receipts (IN operations that are not Done or Cancelled)
     const pendingReceipts = await StockMove.count({
-      where: { type: 'IN', status: 'Draft' },
+      where: {
+        type: 'IN',
+        status: {
+          [Op.notIn]: ['Done', 'Cancelled']
+        }
+      }
     });
-
-    // Pending Deliveries (Stock Moves OUT with status Draft)
+    
+    // Pending Deliveries (OUT operations that are not Done or Cancelled)
     const pendingDeliveries = await StockMove.count({
-      where: { type: 'OUT', status: 'Draft' },
+      where: {
+        type: 'OUT',
+        status: {
+          [Op.notIn]: ['Done', 'Cancelled']
+        }
+      }
     });
-
-    // Low Stock (This would require a more complex query or a 'min_stock' field in Product, 
-    // for now we'll just return 0 or a mock value as we haven't implemented stock levels per product yet)
-    const lowStock = 0; 
 
     res.json({
       totalProducts,
+      lowStock,
       pendingReceipts,
       pendingDeliveries,
-      lowStock,
     });
   } catch (err) {
     console.error(err.message);
