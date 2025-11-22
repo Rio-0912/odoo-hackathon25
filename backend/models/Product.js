@@ -21,9 +21,18 @@ const Product = sequelize.define('Product', {
     allowNull: true,
   },
   uom: {
-    type: DataTypes.STRING, // Unit of Measure
+    type: DataTypes.STRING,
     allowNull: false,
     defaultValue: 'Unit',
+  },
+  quantity: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: false,
+  },
+  unit_cost: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0.00,
   },
   description: {
     type: DataTypes.TEXT,

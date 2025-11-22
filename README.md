@@ -442,6 +442,8 @@ CREATE TABLE Products (
   sku VARCHAR(255) UNIQUE NOT NULL,
   category VARCHAR(255),
   uom VARCHAR(50) DEFAULT 'Unit',
+  quantity INT DEFAULT 0 NOT NULL,
+  unit_cost DECIMAL(10,2) DEFAULT 0.00,
   description TEXT,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -481,13 +483,48 @@ CREATE TABLE StockMoves (
   dest_location_id INT,
   quantity INT NOT NULL,
   type ENUM('IN', 'OUT', 'INT', 'ADJ') NOT NULL,
-  status ENUM('Draft', 'Done', 'Cancelled') DEFAULT 'Done',
+  status ENUM('Draft', 'Waiting', 'Ready', 'Done', 'Cancelled') DEFAULT 'Draft',
   reference VARCHAR(255),
+  responsible VARCHAR(255),
+  schedule_date DATETIME,
+  delivery_address TEXT,
+  contact_person VARCHAR(255),
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
   updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (product_id) REFERENCES Products(id),
   FOREIGN KEY (source_location_id) REFERENCES Locations(id),
   FOREIGN KEY (dest_location_id) REFERENCES Locations(id)
+);
+```
+
+### OrderLines
+```sql
+CREATE TABLE OrderLines (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  stock_move_id INT NOT NULL,
+  product_id INT NOT NULL,
+  quantity INT NOT NULL,
+  unit_price DECIMAL(10,2) DEFAULT 0.00,
+  subtotal DECIMAL(10,2) DEFAULT 0.00,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (stock_move_id) REFERENCES StockMoves(id),
+  FOREIGN KEY (product_id) REFERENCES Products(id)
+);
+```
+
+### StockQuants
+```sql
+CREATE TABLE StockQuants (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  product_id INT NOT NULL,
+  location_id INT NOT NULL,
+  quantity INT DEFAULT 0 NOT NULL,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES Products(id),
+  FOREIGN KEY (location_id) REFERENCES Locations(id),
+  UNIQUE KEY unique_product_location (product_id, location_id)
 );
 ```
 

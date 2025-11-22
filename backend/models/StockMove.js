@@ -18,12 +18,24 @@ const StockMove = sequelize.define('StockMove', {
     allowNull: false,
   },
   status: {
-    type: DataTypes.ENUM('Draft', 'Done', 'Canceled'),
+    type: DataTypes.ENUM('Draft', 'Waiting', 'Ready', 'Done', 'Cancelled'),
     defaultValue: 'Draft',
   },
   reference: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  responsible: {
+    type: DataTypes.STRING,
+  },
+  schedule_date: {
+    type: DataTypes.DATE,
+  },
+  delivery_address: {
+    type: DataTypes.TEXT,
+  },
+  contact_person: {
+    type: DataTypes.STRING,
   },
 });
 

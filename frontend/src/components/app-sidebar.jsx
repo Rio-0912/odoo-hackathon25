@@ -1,12 +1,17 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   Package,
   LayoutDashboard,
-  RefreshCw,
   Settings,
   Warehouse,
+  ArrowDownLeft,
+  ArrowUpRight,
+  RefreshCw,
+  ClipboardList,
+  History,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -65,19 +70,23 @@ export function AppSidebar({
       items: [
         {
           title: "Receipts",
-          url: "/operations?filter=IN",
+          url: "/operations/receipts",
+          icon: ArrowDownLeft,
         },
         {
-          title: "Deliveries",
-          url: "/operations?filter=OUT",
+          title: "Delivery Orders",
+          url: "/operations/deliveries",
+          icon: ArrowUpRight,
         },
         {
-          title: "Transfers",
-          url: "/operations?filter=INT",
+          title: "Inventory Adjustment",
+          url: "/operations/adjustments",
+          icon: ClipboardList,
         },
         {
-          title: "Adjustments",
-          url: "/operations?filter=ADJ",
+          title: "Move History",
+          url: "/operations/move-history",
+          icon: History,
         },
       ],
     },
@@ -88,19 +97,31 @@ export function AppSidebar({
       title: "Settings",
       url: "/settings",
       icon: Settings,
+      items: [
+        {
+          title: "Warehouse",
+          url: "/settings/warehouse",
+          icon: Warehouse,
+        },
+      ],
     },
   ];
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="/dashboard">
-                <Warehouse className="!size-5" />
-                <span className="text-base font-semibold">Odoo IMS</span>
-              </a>
+            <SidebarMenuButton asChild size="lg">
+              <Link href="/dashboard">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <Warehouse className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">Odoo IMS</span>
+                  <span className="truncate text-xs">Inventory Management</span>
+                </div>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

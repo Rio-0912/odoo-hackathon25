@@ -1,6 +1,7 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserRoundCog } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,8 +19,9 @@ export default function Navbar() {
                 <DropdownMenu>
                     <DropdownMenuTrigger className="focus:outline-none">
                         <Avatar>
-                            <AvatarImage src="https://github.com/shadcn.png" />
-                            <AvatarFallback>CN</AvatarFallback>
+                            <AvatarFallback>
+                                <UserRoundCog className="size-4" />
+                            </AvatarFallback>
                         </Avatar>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
