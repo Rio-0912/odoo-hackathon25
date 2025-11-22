@@ -10,7 +10,12 @@ async function seed() {
   try {
     await db.authenticate();
     console.log('DB Connected.');
+
+    // Disable FK checks to allow dropping tables with dependencies
+    await db.query('SET FOREIGN_KEY_CHECKS = 0', { raw: true });
     await db.sync({ force: true }); // Reset DB
+    await db.query('SET FOREIGN_KEY_CHECKS = 1', { raw: true });
+
     console.log('DB Synced.');
 
     const salt = await bcrypt.genSalt(10);
