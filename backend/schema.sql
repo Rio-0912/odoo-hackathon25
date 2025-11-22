@@ -1,0 +1,63 @@
+-- Create Database
+CREATE DATABASE IF NOT EXISTS ims_db;
+USE ims_db;
+
+-- Users Table
+CREATE TABLE IF NOT EXISTS Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('Manager', 'Staff') DEFAULT 'Staff',
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Warehouses Table
+CREATE TABLE IF NOT EXISTS Warehouses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255),
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Locations Table
+CREATE TABLE IF NOT EXISTS Locations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    warehouse_id INT,
+    name VARCHAR(255) NOT NULL,
+    type ENUM('Internal', 'Customer', 'Vendor', 'Inventory Loss') DEFAULT 'Internal',
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (warehouse_id) REFERENCES Warehouses(id) ON DELETE SET NULL
+);
+
+-- Products Table
+CREATE TABLE IF NOT EXISTS Products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    sku VARCHAR(255) NOT NULL UNIQUE,
+    category VARCHAR(255),
+    uom VARCHAR(50) DEFAULT 'Unit',
+    description TEXT,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- StockMoves Table
+CREATE TABLE IF NOT EXISTS StockMoves (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT,
+    source_location_id INT,
+    dest_location_id INT,
+    quantity INT NOT NULL,
+    type ENUM('IN', 'OUT', 'INT', 'ADJ') NOT NULL,
+    status ENUM('Draft', 'Done', 'Cancelled') DEFAULT 'Done',
+    reference VARCHAR(255),
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE SET NULL,
+    FOREIGN KEY (source_location_id) REFERENCES Locations(id) ON DELETE SET NULL,
+    FOREIGN KEY (dest_location_id) REFERENCES Locations(id) ON DELETE SET NULL
+);
